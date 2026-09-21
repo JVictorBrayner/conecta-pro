@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import PerfilPrestador
 
-# Register your models here.
+admin.site.register(PerfilPrestador)
+
+

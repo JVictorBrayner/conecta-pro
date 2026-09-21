@@ -53,7 +53,3 @@ def fazer_login(request):
         else:
             # se errou a senha ou email:
             return redirect('/login/?status=erro')
-
-
-
-    

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed - ConectaPro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<!-- Barra de Navegação -->
+<nav class="navbar navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">ConectaPro</a>
+        <div class="d-flex text-white align-items-center">
+            <span class="me-3">Olá, {{ request.user.first_name }}!</span>
+            <a href="{% url 'login' %}" class="btn btn-danger btn-sm">Sair</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Container Principal do Feed -->
+<div class="container mt-5" style="max-width: 600px;">
+    <h2 class="mb-4 text-center">Mural de Serviços</h2>
+
+    <!-- loop de repetição que percorre as publicacoes do banco -->
+    {% for pub in publicacoes %}
+        <div class="card mb-4 shadow-sm border-0">
+            
+            <!-- Exibe a imagem apenas se ela existir na publicação -->
+            {% if pub.imagem %}
+                <img src="{{ pub.imagem.url }}" class="card-img-top" alt="Foto do serviço" style="max-height: 350px; object-fit: cover;">
+            {% endif %}
+            
+            <div class="card-body">
+                <!-- Etiqueta da Categoria -->
+                <span class="badge bg-secondary mb-2">{{ pub.categoria.nome }}</span>
+                
+                <!-- Nome do Prestador -->
+                <h5 class="card-title fw-bold text-dark">{{ pub.prestador.usuario.first_name }}</h5>
+                
+                <!-- Texto do Anúncio -->
+                <p class="card-text text-secondary">{{ pub.texto }}</p>
+                
+                <p class="card-text">
+                    <small class="text-muted">Publicado em {{ pub.data_criacao|date:"d/m/Y H:i" }}</small>
+                </p>
+                
+                <!-- Botão dinâmico do WhatsApp -->
+                <a href="https://wa.me/{{ pub.prestador.telefone }}?text=Olá! Vi seu anúncio no ConectaPro." target="_blank" class="btn btn-success w-100 fw-bold">
+                    Contatar via WhatsApp
+                </a>
+            </div>
+        </div>
+        
+    {% empty %}
+        <!-- Caso o banco esteja vazio -->
+        <div class="alert alert-info text-center" role="alert">
+            Nenhum serviço publicado no mural ainda. Seja o primeiro a anunciar!
+        </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>
