@@ -4,62 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feed - ConectaPro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonte Padrão -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body class="bg-light">
+<body class="bg-[#F9F5D7] min-h-screen pb-12">
 
-<!-- Barra de Navegação -->
-<nav class="navbar navbar-dark bg-primary shadow-sm">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="#">ConectaPro</a>
-        <div class="d-flex text-white align-items-center">
-            <span class="me-3">Olá, {{ request.user.first_name }}!</span>
-            <a href="{% url 'login' %}" class="btn btn-danger btn-sm">Sair</a>
-        </div>
-    </div>
-</nav>
+    <!-- AQUI ESTAMOS A CHAMAR A NAVBAR -->
+    {% include 'navbar.html' %}
 
-<!-- Container Principal do Feed -->
-<div class="container mt-5" style="max-width: 600px;">
-    <h2 class="mb-4 text-center">Mural de Serviços</h2>
-
-    <!-- loop de repetição que percorre as publicacoes do banco -->
-    {% for pub in publicacoes %}
-        <div class="card mb-4 shadow-sm border-0">
-            
-            <!-- Exibe a imagem apenas se ela existir na publicação -->
-            {% if pub.imagem %}
-                <img src="{{ pub.imagem.url }}" class="card-img-top" alt="Foto do serviço" style="max-height: 350px; object-fit: cover;">
-            {% endif %}
-            
-            <div class="card-body">
-                <!-- Etiqueta da Categoria -->
-                <span class="badge bg-secondary mb-2">{{ pub.categoria.nome }}</span>
-                
-                <!-- Nome do Prestador -->
-                <h5 class="card-title fw-bold text-dark">{{ pub.prestador.usuario.first_name }}</h5>
-                
-                <!-- Texto do Anúncio -->
-                <p class="card-text text-secondary">{{ pub.texto }}</p>
-                
-                <p class="card-text">
-                    <small class="text-muted">Publicado em {{ pub.data_criacao|date:"d/m/Y H:i" }}</small>
-                </p>
-                
-                <!-- Botão dinâmico do WhatsApp -->
-                <a href="https://wa.me/{{ pub.prestador.telefone }}?text=Olá! Vi seu anúncio no ConectaPro." target="_blank" class="btn btn-success w-100 fw-bold">
-                    Contatar via WhatsApp
-                </a>
-            </div>
-        </div>
+    <!-- Container Principal -->
+    <main class="max-w-2xl mx-auto px-4 mt-8">
         
-    {% empty %}
-        <!-- Caso o banco esteja vazio -->
-        <div class="alert alert-info text-center" role="alert">
-            Nenhum serviço publicado no mural ainda. Seja o primeiro a anunciar!
-        </div>
-    {% endfor %}
-</div>
+        <!-- Secção de Criação de Publicação (Estática / Visual) -->
+        <section class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+            <div class="flex gap-3 mb-2 items-center">
+                <button class="w-10 h-10 rounded-full bg-[#022E4B] text-white flex items-center justify-center hover:bg-[#386490] transition-colors flex-shrink-0" title="Criar nova publicação">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </button>
+                <button class="flex-1 text-left px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-500 font-medium transition-colors text-sm">
+                    Ofertar ou solicitar um serviço...
+                </button>
+            </div>
+            
+            <div class="flex justify-between items-center pt-2 px-1">
+                <button class="flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-50 rounded-lg transition-colors text-gray-500 font-medium text-xs sm:text-sm">
+                    <svg class="w-5 h-5 text-[#386490]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Foto
+                </button>
+                <button class="flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-50 rounded-lg transition-colors text-gray-500 font-medium text-xs sm:text-sm">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    Vídeo
+                </button>
+                <button class="flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-50 rounded-lg transition-colors text-gray-500 font-medium text-xs sm:text-sm">
+                    <svg class="w-5 h-5 text-[#9C5B25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Evento
+                </button>
+            </div>
+        </section>
 
+        <!-- Feed de Publicações Dinâmico (Lógica do Django) -->
+        <section class="flex flex-col gap-6">
+            
+            {% for pub in publicacoes %}
+                <article class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    
+                    <!-- Cabeçalho do Post -->
+                    <div class="p-4 flex items-center justify-between border-b border-gray-50">
+                        <div class="flex items-center gap-3">
+                            <!-- Letra inicial do nome do usuário para o avatar -->
+                            <div class="w-10 h-10 rounded-full bg-[#022E4B] text-white flex items-center justify-center font-bold uppercase">
+                                {{ pub.prestador.usuario.first_name|first }}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-[#022E4B] leading-none">{{ pub.prestador.usuario.first_name }}</h3>
+                                <span class="text-xs text-[#386490]">{{ pub.categoria.nome }}</span>
+                            </div>
+                        </div>
+                        <span class="text-xs text-gray-400 font-medium">{{ pub.data_criacao|date:"d/m/Y H:i" }}</span>
+                    </div>
+
+                    <!-- Mídia / Imagem do Serviço -->
+                    <div class="w-full aspect-video bg-[#F0FFF3] flex items-center justify-center border-b border-gray-100 overflow-hidden">
+                        {% if pub.imagem %}
+                            <img src="{{ pub.imagem.url }}" class="w-full h-full object-cover" alt="Foto do serviço">
+                        {% else %}
+                            <span class="text-[#386490] opacity-50 font-semibold flex flex-col items-center">
+                                <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                Imagem do Serviço
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Corpo e Interações -->
+                    <div class="p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex gap-4">
+                                <button class="text-[#386490] hover:text-[#9C5B25] transition-colors font-bold text-2xl leading-none">♡</button>
+                                <button class="text-[#386490] hover:text-[#9C5B25] transition-colors font-bold text-xl leading-none">💬</button>
+                            </div>
+                            <span class="text-[#9C5B25] font-bold text-sm">★ Novo</span>
+                        </div>
+                        
+                        <!-- Texto da Publicação -->
+                        <p class="text-sm text-gray-700 mb-4 whitespace-pre-line">{{ pub.texto }}</p>
+                        
+                        <!-- Botão de WhatsApp Dinâmico -->
+                        <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
+                            <span class="font-bold text-[#022E4B] text-sm">Orçamento via chat</span>
+                            
+                            <a href="https://wa.me/{{ pub.prestador.telefone }}?text=Olá! Vi seu anúncio no ConectaPro." target="_blank" 
+                               class="bg-[#386490] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-[#022E4B] transition-colors shadow-sm">
+                                Contatar
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            
+            {% empty %}
+                <!-- Caso o banco de dados de publicações esteja vazio -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
+                    <div class="w-16 h-16 bg-[#F0FFF3] text-[#386490] rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="text-[#022E4B] font-bold text-lg mb-2">Mural Vazio</h3>
+                    <p class="text-gray-500 text-sm">Nenhum serviço publicado ainda. Seja o primeiro a anunciar!</p>
+                </div>
+            {% endfor %}
+            
+        </section>
+
+    </main>
 </body>
 </html>
