@@ -5,8 +5,9 @@
             Conecta<span class="text-[#9C5B25]">Pro</span>
         </a>
         
+        <!-- Barra de Pesquisa Desktop -->
         <div class="flex-1 max-w-lg hidden sm:block">
-            <div class="relative flex items-center w-full">
+            <form method="GET" action="{% url 'feed' %}" class="relative flex items-center w-full">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -14,10 +15,12 @@
                 </div>
                 <input
                     type="text"
-                    placeholder="Pesquise por serviços..."
+                    name="q"
+                    value="{{ busca|default:'' }}"
+                    placeholder="Pesquise por serviço, profissional ou cidade..."
                     class="w-full pl-10 pr-4 py-2 bg-white rounded-lg text-[#022E4B] text-sm focus:outline-none focus:ring-2 focus:ring-[#386490] border-none transition-all shadow-inner"
                 />
-            </div>
+            </form>
         </div>
 
         <div class="flex items-center gap-3 sm:gap-5 shrink-0">
@@ -28,19 +31,9 @@
                 </svg>
             </a>
 
-            <button class="hidden sm:block text-gray-300 hover:text-white transition-colors" title="Mensagens">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-            </button>
-
-            <button class="hidden sm:block text-gray-300 hover:text-white transition-colors" title="Notificações">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-            </button>
-
-            <a href="#" class="hidden sm:block text-gray-300 hover:text-white transition-colors" title="Minha Vitrine">
+            <a href="{% if request.user.perfil_prestador %}{% url 'vitrine_prestador' request.user.perfil_prestador.id %}{% else %}{% url 'gerenciar_perfil_prestador' %}{% endif %}" 
+               class="hidden sm:block text-gray-300 hover:text-white transition-colors" 
+               title="Minha Vitrine">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -52,10 +45,32 @@
                 title="Menu do Perfil"
             >
                 <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#386490] border-2 border-[#9C5B25] flex items-center justify-center text-sm overflow-hidden shadow-sm uppercase">
-                    <span class="text-white font-bold">{{ request.user.first_name|default:"U"|first }}</span>
+                    {% if request.user.perfil_prestador.foto_perfil %}
+                        <img src="{{ request.user.perfil_prestador.foto_perfil.url }}" alt="Foto de perfil" class="w-full h-full object-cover">
+                    {% else %}
+                        <span class="text-white font-bold">{{ request.user.first_name|default:"U"|first }}</span>
+                    {% endif %}
                 </div>
             </button>
         </div>
+    </div>
+
+    <!-- Barra de Pesquisa Mobile -->
+    <div class="mt-3 sm:hidden">
+        <form method="GET" action="{% url 'feed' %}" class="relative flex items-center w-full">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            <input
+                type="text"
+                name="q"
+                value="{{ busca|default:'' }}"
+                placeholder="Pesquise por serviço, profissional ou cidade..."
+                class="w-full pl-9 pr-4 py-1.5 bg-white rounded-lg text-[#022E4B] text-sm focus:outline-none focus:ring-2 focus:ring-[#386490] border-none"
+            />
+        </form>
     </div>
 </header>
 
@@ -74,61 +89,58 @@
         <button id="btnFecharMenu" class="text-3xl hover:text-[#9C5B25] leading-none">&times;</button>
     </div>
 
-    <div class="flex flex-col items-center justify-center py-6 bg-gray-50 border-b border-gray-200">
+    <div class="flex flex-col items-center justify-center py-6 bg-gray-50 border-b border-gray-200 px-4">
         <div class="w-24 h-24 rounded-full bg-[#386490] border-4 border-[#9C5B25] mb-3 flex items-center justify-center overflow-hidden shadow-md uppercase">
-            <span class="text-4xl text-white font-bold">{{ request.user.first_name|default:"U"|first }}</span>
+            {% if request.user.perfil_prestador.foto_perfil %}
+                <img src="{{ request.user.perfil_prestador.foto_perfil.url }}" alt="Foto de perfil" class="w-full h-full object-cover">
+            {% else %}
+                <span class="text-4xl text-white font-bold">{{ request.user.first_name|default:"U"|first }}</span>
+            {% endif %}
         </div>
         
-        <a href="#" class="flex items-center text-[#386490] font-semibold hover:text-[#9C5B25] transition-colors mb-4 no-underline">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-            Editar meu perfil
-        </a>
+        <p class="font-bold text-[#022E4B] text-base mb-1">{{ request.user.first_name }}</p>
 
-        <div class="flex w-full px-8 justify-center gap-6">
-            <div class="text-center cursor-pointer hover:opacity-80 transition-opacity">
-                <span class="block font-bold text-[#022E4B] text-xl leading-none">47</span>
-                <span class="text-xs text-gray-500 font-medium">Vínculos</span>
+        {% if request.user.perfil_prestador %}
+            <span class="text-xs bg-[#F0FFF3] text-[#022E4B] border border-[#386490]/30 font-semibold px-3 py-0.5 rounded-full mb-3">
+                ✓ {{ request.user.perfil_prestador.categoria.nome|default:"Prestador Ativo" }}
+            </span>
+
+            <a href="{% url 'gerenciar_perfil_prestador' %}" class="flex items-center text-[#386490] font-semibold hover:text-[#9C5B25] transition-colors mb-4 no-underline text-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                Editar perfil profissional
+            </a>
+
+            <div class="text-center">
+                <span class="block font-bold text-[#022E4B] text-xl leading-none">
+                    {{ request.user.perfil_prestador.publicacao_set.count|default:"0" }}
+                </span>
+                <span class="text-xs text-gray-500 font-medium">Publicações</span>
             </div>
-            <div class="w-px bg-gray-300 my-1"></div>
-            <div class="text-center cursor-pointer hover:opacity-80 transition-opacity">
-                <span class="block font-bold text-[#022E4B] text-xl leading-none">12</span>
-                <span class="text-xs text-gray-500 font-medium">Posts</span>
-            </div>
-        </div>
+        {% else %}
+            <span class="text-xs bg-gray-200 text-gray-600 font-semibold px-3 py-0.5 rounded-full mb-3">
+                Conta Solicitante
+            </span>
+
+            <a href="{% url 'gerenciar_perfil_prestador' %}" class="flex items-center bg-[#9C5B25] text-white font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline text-sm shadow-sm">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Tornar-se Prestador
+            </a>
+        {% endif %}
     </div>
 
     <div class="flex-1 overflow-y-auto py-2">
-        <a href="#" class="w-full flex items-center px-6 py-4 text-[#022E4B] hover:bg-[#F0FFF3] hover:text-[#386490] transition-colors font-semibold no-underline">
+        <a href="{% url 'feed' %}" class="w-full flex items-center px-6 py-4 text-[#022E4B] hover:bg-[#F0FFF3] hover:text-[#386490] transition-colors font-semibold no-underline">
             <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Nova Publicação
         </a>
 
-        <a href="#" class="w-full flex items-center px-6 py-4 text-[#022E4B] hover:bg-[#F0FFF3] hover:text-[#386490] transition-colors font-semibold no-underline">
-            <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            Meus vínculos
-        </a>
-
-        <a href="#" class="w-full flex items-center px-6 py-4 text-[#022E4B] hover:bg-[#F0FFF3] hover:text-[#386490] transition-colors font-semibold no-underline">
-            <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            Mensagens
-        </a>
-
-        <a href="#" class="w-full flex items-center px-6 py-4 text-[#022E4B] hover:bg-[#F0FFF3] hover:text-[#386490] transition-colors font-semibold no-underline">
-            <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            Notificações
-        </a>
-
-        <a href="#" class="w-full flex items-center px-6 py-4 text-[#022E4B] hover:bg-[#F0FFF3] hover:text-[#386490] transition-colors font-semibold no-underline">
+        <a href="{% url 'configuracoes' %}" class="w-full flex items-center px-6 py-4 text-[#022E4B] hover:bg-[#F0FFF3] hover:text-[#386490] transition-colors font-semibold no-underline">
             <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -136,16 +148,17 @@
             Configurações
         </a>
 
-        <a href="#" class="w-full flex items-center px-6 py-4 mt-2 border-t border-gray-100 text-[#022E4B] hover:bg-[#F0FFF3] hover:text-[#386490] transition-colors font-semibold no-underline">
+        <a href="{% if request.user.perfil_prestador %}{% url 'vitrine_prestador' request.user.perfil_prestador.id %}{% else %}{% url 'gerenciar_perfil_prestador' %}{% endif %}" 
+           class="w-full flex items-center px-6 py-4 mt-2 border-t border-gray-100 text-[#022E4B] hover:bg-[#F0FFF3] hover:text-[#386490] transition-colors font-semibold no-underline">
             <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            Minha Vitrine
+            {% if request.user.perfil_prestador %}Minha Vitrine{% else %}Tornar-se Prestador{% endif %}
         </a>
     </div>
 
     <div class="p-4 border-t border-gray-200 bg-gray-50">
-        <a href="{% url 'login' %}" class="w-full flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-50 py-3 rounded-lg transition-colors font-bold no-underline">
+        <a href="{% url 'logout' %}" class="w-full flex items-center justify-center text-red-600 hover:text-red-800 hover:bg-red-50 py-3 rounded-lg transition-colors font-bold no-underline">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>

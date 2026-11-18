@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ prestador.usuario.first_name }} - Vitrine ConectaPro</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F9F5D7] min-h-screen pb-12">
+
+    {% include 'navbar.html' %}
+
+    <main class="max-w-3xl mx-auto px-4 mt-8">
+
+        <div class="mb-4">
+            <a href="{% url 'feed' %}" class="text-sm font-semibold text-[#386490] hover:text-[#022E4B]">
+                ← Voltar ao Feed
+            </a>
+        </div>
+
+        <!-- Alertas de Avaliação -->
+        {% if status == 'avaliado' %}
+            <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg text-sm font-semibold shadow-sm">
+                Sua avaliação foi registrada com sucesso!
+            </div>
+        {% elif status == 'erro_avaliacao' %}
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg text-sm font-semibold shadow-sm">
+                Selecione uma nota de 1 a 5 e escreva um comentário para avaliar.
+            </div>
+        {% endif %}
+
+        <!-- Cartão Principal da Vitrine Profissional -->
+        <section class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden mb-8">
+            <div class="h-28 bg-gradient-to-r from-[#022E4B] to-[#386490]"></div>
+            
+            <div class="px-6 pb-6">
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between -mt-12 mb-4 gap-4">
+                    <div class="flex items-end gap-4">
+                        <div class="w-24 h-24 rounded-full bg-[#386490] border-4 border-white shadow-md flex items-center justify-center overflow-hidden uppercase shrink-0">
+                            {% if prestador.foto_perfil %}
+                                <img src="{{ prestador.foto_perfil.url }}" alt="{{ prestador.usuario.first_name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <span class="text-3xl text-white font-bold">{{ prestador.usuario.first_name|first }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="pb-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h1 class="text-2xl font-bold text-[#022E4B]">{{ prestador.usuario.first_name }}</h1>
+                                <!-- Selo de Nota Média -->
+                                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-[#9C5B25] border border-amber-200">
+                                    {% if media_notas %}
+                                        ★ {{ media_notas|floatformat:1 }} ({{ avaliacoes.count }})
+                                    {% else %}
+                                        ★ Novo
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <p class="text-sm font-semibold text-[#9C5B25] mt-0.5">
+                                {{ prestador.categoria.nome|default:"Prestador de Serviços" }} • {{ prestador.cidade }}/{{ prestador.estado }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        {% if request.user == prestador.usuario %}
+                            <a href="{% url 'gerenciar_perfil_prestador' %}" class="bg-gray-100 text-[#022E4B] px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors no-underline">
+                                Editar Vitrine
+                            </a>
+                        {% endif %}
+                        <a href="https://wa.me/{{ prestador.telefone }}?text=Olá {{ prestador.usuario.first_name }}! Vi seu perfil profissional no ConectaPro." target="_blank"
+                           class="bg-[#386490] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#022E4B] transition-colors shadow-sm no-underline">
+                            Contatar no WhatsApp
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Sobre o profissional -->
+                <div class="pt-4 border-t border-gray-100">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Sobre o Profissional</h2>
+                    <p class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{{ prestador.descricao }}</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Portfólio / Publicações do Prestador -->
+        <section class="mb-10">
+            <h2 class="text-lg font-bold text-[#022E4B] mb-4">
+                Trabalhos e Divulgações ({{ publicacoes.count }})
+            </h2>
+
+            <div class="flex flex-col gap-5">
+                {% for pub in publicacoes %}
+                    <article class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="p-4 flex justify-between items-center border-b border-gray-50 gap-2">
+                            <span class="text-xs font-bold text-[#386490] bg-[#F0FFF3] px-3 py-1 rounded-full">
+                                {{ pub.categoria.nome|default:"Serviço" }}
+                            </span>
+
+                            <div class="flex items-center gap-3 shrink-0">
+                                <span class="text-xs text-gray-400">{{ pub.data_criacao|date:"d/m/Y H:i" }}</span>
+
+                                {% if pub.prestador.usuario == request.user %}
+                                    <a href="{% url 'editar_publicacao' pub.id %}" class="text-xs font-semibold text-[#386490] hover:underline" title="Editar publicação">
+                                        Editar
+                                    </a>
+                                    <form action="{% url 'excluir_publicacao' pub.id %}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta publicação?');" class="inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <button type="submit" class="text-xs font-semibold text-red-600 hover:underline">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if pub.imagem %}
+                            <div class="w-full max-h-96 bg-[#F0FFF3] overflow-hidden border-b border-gray-100">
+                                <img src="{{ pub.imagem.url }}" alt="Trabalho realizado" class="w-full h-full object-cover">
+                            </div>
+                        {% endif %}
+
+                        <div class="p-4">
+                            <p class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{{ pub.texto }}</p>
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 text-center text-sm text-gray-500">
+                        Este prestador ainda não publicou trabalhos no feed.
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Seção de Avaliações de Clientes -->
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-[#022E4B]">
+                    Avaliações de Clientes ({{ avaliacoes.count }})
+                </h2>
+                {% if media_notas %}
+                    <span class="text-sm font-bold text-[#9C5B25]">
+                        Média: ★ {{ media_notas|floatformat:1 }} / 5.0
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Formulário de Avaliação (apenas para visitantes, não para o dono do perfil) -->
+            {% if request.user != prestador.usuario %}
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                    <h3 class="text-sm font-bold text-[#022E4B] mb-3">
+                        {% if minha_avaliacao %}Atualizar sua avaliação{% else %}Avaliar este profissional{% endif %}
+                    </h3>
+
+                    <form action="{% url 'vitrine_prestador' prestador.id %}" method="POST" class="space-y-3">
+                        {% csrf_token %}
+
+                        <div>
+                            <label for="nota" class="block text-xs font-semibold text-gray-600 mb-1">Nota do atendimento *</label>
+                            <select id="nota" name="nota" class="w-full sm:w-56 px-3 py-2 rounded-lg border border-gray-300 bg-[#F0FFF3] text-sm font-semibold text-[#022E4B] focus:outline-none focus:ring-2 focus:ring-[#386490]">
+                                <option value="5" {% if minha_avaliacao.nota == 5 %}selected{% endif %}>★★★★★ (5 - Excelente)</option>
+                                <option value="4" {% if minha_avaliacao.nota == 4 %}selected{% endif %}>★★★★☆ (4 - Muito Bom)</option>
+                                <option value="3" {% if minha_avaliacao.nota == 3 %}selected{% endif %}>★★★☆☆ (3 - Regular)</option>
+                                <option value="2" {% if minha_avaliacao.nota == 2 %}selected{% endif %}>★★☆☆☆ (2 - Ruim)</option>
+                                <option value="1" {% if minha_avaliacao.nota == 1 %}selected{% endif %}>★☆☆☆☆ (1 - Péssimo)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="comentario" class="block text-xs font-semibold text-gray-600 mb-1">Comentário sobre o serviço *</label>
+                            <textarea id="comentario" name="comentario" rows="2" placeholder="Conte como foi sua experiência com o serviço realizado..."
+                                      class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#386490] text-sm text-gray-700">{{ minha_avaliacao.comentario|default:'' }}</textarea>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-[#9C5B25] text-white px-5 py-2 rounded-lg text-xs sm:text-sm font-bold hover:opacity-90 transition-opacity shadow-sm">
+                                {% if minha_avaliacao %}Atualizar Avaliação{% else %}Enviar Avaliação{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+
+            <!-- Lista de Avaliações Recebidas -->
+            <div class="flex flex-col gap-3">
+                {% for av in avaliacoes %}
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-[#386490] text-white flex items-center justify-center text-xs font-bold uppercase">
+                                    {{ av.autor.first_name|first }}
+                                </div>
+                                <div>
+                                    <span class="font-bold text-sm text-[#022E4B] block leading-none">{{ av.autor.first_name }}</span>
+                                    <span class="text-xs text-[#9C5B25] font-bold">
+                                        {% if av.nota == 5 %}★★★★★
+                                        {% elif av.nota == 4 %}★★★★☆
+                                        {% elif av.nota == 3 %}★★★☆☆
+                                        {% elif av.nota == 2 %}★★☆☆☆
+                                        {% else %}★☆☆☆☆{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-400">{{ av.data_criacao|date:"d/m/Y" }}</span>
+                        </div>
+                        <p class="text-sm text-gray-700 leading-relaxed">{{ av.comentario }}</p>
+                    </div>
+                {% empty %}
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 text-center text-sm text-gray-500">
+                        Este profissional ainda não recebeu avaliações.
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+    </main>
+</body>
+</html>

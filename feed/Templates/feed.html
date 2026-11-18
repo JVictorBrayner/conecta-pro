@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feed - ConectaPro</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
     
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,112 +18,232 @@
 </head>
 <body class="bg-[#F9F5D7] min-h-screen pb-12">
 
-    <!-- AQUI ESTAMOS A CHAMAR A NAVBAR -->
+    <!-- NAVBAR -->
     {% include 'navbar.html' %}
 
     <!-- Container Principal -->
     <main class="max-w-2xl mx-auto px-4 mt-8">
-        
-        <!-- Secção de Criação de Publicação (Estática / Visual) -->
-        <section class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
-            <div class="flex gap-3 mb-2 items-center">
-                <button class="w-10 h-10 rounded-full bg-[#022E4B] text-white flex items-center justify-center hover:bg-[#386490] transition-colors flex-shrink-0" title="Criar nova publicação">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                </button>
-                <button class="flex-1 text-left px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-500 font-medium transition-colors text-sm">
-                    Ofertar ou solicitar um serviço...
-                </button>
-            </div>
-            
-            <div class="flex justify-between items-center pt-2 px-1">
-                <button class="flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-50 rounded-lg transition-colors text-gray-500 font-medium text-xs sm:text-sm">
-                    <svg class="w-5 h-5 text-[#386490]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    Foto
-                </button>
-                <button class="flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-50 rounded-lg transition-colors text-gray-500 font-medium text-xs sm:text-sm">
-                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                    Vídeo
-                </button>
-                <button class="flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-50 rounded-lg transition-colors text-gray-500 font-medium text-xs sm:text-sm">
-                    <svg class="w-5 h-5 text-[#9C5B25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    Evento
-                </button>
-            </div>
-        </section>
 
-        <!-- Feed de Publicações Dinâmico (Lógica do Django) -->
+        <!-- Alertas de feedback -->
+        {% if status == 'sucesso' %}
+            <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg text-sm font-semibold shadow-sm">
+                Serviço publicado com sucesso no mural!
+            </div>
+        {% elif status == 'erro' %}
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg text-sm font-semibold shadow-sm">
+                Escreva uma descrição do seu serviço antes de publicar.
+            </div>
+        {% endif %}
+        
+        <!-- Seção de Criação de Publicação -->
+        {% if perfil_prestador %}
+            <section class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                <form action="{% url 'feed' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="flex gap-3 items-start mb-3">
+                        <!-- Avatar do usuário logado -->
+                        <div class="w-10 h-10 rounded-full bg-[#022E4B] text-white flex items-center justify-center font-bold uppercase overflow-hidden shrink-0 border border-[#9C5B25]">
+                            {% if perfil_prestador.foto_perfil %}
+                                <img src="{{ perfil_prestador.foto_perfil.url }}" alt="Avatar" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ request.user.first_name|first }}
+                            {% endif %}
+                        </div>
+
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="text-xs font-semibold text-[#022E4B]">Publicando como:</span>
+                                <span class="text-xs bg-[#F0FFF3] text-[#386490] font-bold px-2.5 py-0.5 rounded-full border border-[#386490]/20">
+                                    {{ perfil_prestador.categoria.nome|default:"Prestador" }} • {{ perfil_prestador.cidade }}/{{ perfil_prestador.estado }}
+                                </span>
+                            </div>
+
+                            <textarea 
+                                name="texto" 
+                                rows="3" 
+                                placeholder="Divulgue seu serviço, experiência, disponibilidade ou região de atendimento..."
+                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#386490] text-gray-700 text-sm resize-none transition-colors"
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Preview do nome do arquivo selecionado -->
+                    <div id="nomeArquivoContainer" class="hidden mb-3 px-3 py-1.5 bg-[#F0FFF3] text-[#022E4B] text-xs font-semibold rounded-lg flex items-center justify-between">
+                        <span id="nomeArquivoTexto"></span>
+                        <button type="button" id="btnRemoverImagem" class="text-red-600 hover:underline ml-2">Remover</button>
+                    </div>
+                    
+                    <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                        <!-- Input de arquivo oculto estilizado como botão -->
+                        <label for="inputImagem" class="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-50 rounded-lg transition-colors text-gray-600 font-semibold text-xs sm:text-sm">
+                            <svg class="w-5 h-5 text-[#386490]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Adicionar Foto
+                        </label>
+                        <input type="file" id="inputImagem" name="imagem" accept="image/*" class="hidden">
+
+                        <button type="submit" class="bg-[#386490] text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-[#022E4B] transition-colors shadow-sm">
+                            Publicar Serviço
+                        </button>
+                    </div>
+                </form>
+            </section>
+        {% else %}
+            <!-- Banner para quem ainda é apenas Solicitante -->
+            <section class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-bold text-[#022E4B] text-base">Quer divulgar seus serviços no ConectaPro?</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Ative seu perfil profissional gratuitamente para publicar seus trabalhos e receber clientes.</p>
+                </div>
+                <a href="{% url 'gerenciar_perfil_prestador' %}" class="bg-[#9C5B25] text-white px-4 py-2.5 rounded-lg text-xs sm:text-sm font-bold hover:opacity-90 transition-opacity shrink-0 no-underline shadow-sm">
+                    Tornar-se Prestador
+                </a>
+            </section>
+        {% endif %}
+
+        <!-- Filtro rápido por Categoria -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-4">
+            <a href="{% url 'feed' %}{% if busca %}?q={{ busca }}{% endif %}"
+               class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors no-underline {% if not categoria_selecionada %}bg-[#022E4B] text-white{% else %}bg-white text-[#022E4B] border border-gray-200 hover:bg-gray-50{% endif %}">
+                Todas
+            </a>
+            {% for cat in categorias %}
+                <a href="?categoria={{ cat.id }}{% if busca %}&q={{ busca }}{% endif %}"
+                   class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors no-underline {% if categoria_selecionada == cat.id|stringformat:'s' %}bg-[#022E4B] text-white{% else %}bg-white text-[#022E4B] border border-gray-200 hover:bg-gray-50{% endif %}">
+                    {{ cat.nome }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- Indicador de busca ativa (se houver) -->
+        {% if busca or categoria_selecionada %}
+            <div class="flex items-center justify-between bg-white/70 px-4 py-2 rounded-xl mb-4 text-xs text-[#022E4B]">
+                <span>
+                    Exibindo resultados filtrados
+                    {% if busca %}para <strong>"{{ busca }}"</strong>{% endif %}
+                </span>
+                <a href="{% url 'feed' %}" class="text-[#9C5B25] font-bold hover:underline">Limpar filtros</a>
+            </div>
+        {% endif %}
+
+        <!-- Feed de Publicações Dinâmico -->
         <section class="flex flex-col gap-6">
             
             {% for pub in publicacoes %}
                 <article class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     
-                    <!-- Cabeçalho do Post -->
-                    <div class="p-4 flex items-center justify-between border-b border-gray-50">
-                        <div class="flex items-center gap-3">
-                            <!-- Letra inicial do nome do usuário para o avatar -->
-                            <div class="w-10 h-10 rounded-full bg-[#022E4B] text-white flex items-center justify-center font-bold uppercase">
-                                {{ pub.prestador.usuario.first_name|first }}
+                    <!-- Cabeçalho do Post com link para Vitrine Pública e Ações do Autor -->
+                    <div class="p-4 flex items-center justify-between border-b border-gray-50 gap-2">
+                        <a href="{% url 'vitrine_prestador' pub.prestador.id %}" class="flex items-center gap-3 group no-underline min-w-0">
+                            <div class="w-10 h-10 rounded-full bg-[#022E4B] text-white flex items-center justify-center font-bold uppercase overflow-hidden border border-[#9C5B25] shrink-0">
+                                {% if pub.prestador.foto_perfil %}
+                                    <img src="{{ pub.prestador.foto_perfil.url }}" alt="Foto de {{ pub.prestador.usuario.first_name }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    {{ pub.prestador.usuario.first_name|first }}
+                                {% endif %}
                             </div>
-                            <div>
-                                <h3 class="font-bold text-[#022E4B] leading-none">{{ pub.prestador.usuario.first_name }}</h3>
-                                <span class="text-xs text-[#386490]">{{ pub.categoria.nome }}</span>
+                            <div class="truncate">
+                                <h3 class="font-bold text-[#022E4B] leading-tight group-hover:text-[#9C5B25] transition-colors truncate">{{ pub.prestador.usuario.first_name }}</h3>
+                                <div class="flex items-center gap-2 text-xs text-[#386490] font-medium">
+                                    <span>{{ pub.categoria.nome|default:"Serviço Geral" }}</span>
+                                    <span>•</span>
+                                    <span class="text-gray-500">{{ pub.prestador.cidade }}/{{ pub.prestador.estado }}</span>
+                                </div>
                             </div>
+                        </a>
+
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="text-xs text-gray-400 font-medium hidden sm:inline">{{ pub.data_criacao|date:"d/m/Y H:i" }}</span>
+
+                            {% if pub.prestador.usuario == request.user %}
+                                <a href="{% url 'editar_publicacao' pub.id %}" class="text-xs font-semibold text-[#386490] hover:underline" title="Editar publicação">
+                                    Editar
+                                </a>
+                                <form action="{% url 'excluir_publicacao' pub.id %}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta publicação?');" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <button type="submit" class="text-xs font-semibold text-red-600 hover:underline">
+                                        Excluir
+                                    </button>
+                                </form>
+                            {% endif %}
                         </div>
-                        <span class="text-xs text-gray-400 font-medium">{{ pub.data_criacao|date:"d/m/Y H:i" }}</span>
                     </div>
 
-                    <!-- Mídia / Imagem do Serviço -->
-                    <div class="w-full aspect-video bg-[#F0FFF3] flex items-center justify-center border-b border-gray-100 overflow-hidden">
-                        {% if pub.imagem %}
+                    <!-- Mídia / Imagem do Serviço (só exibe o bloco se houver imagem anexada) -->
+                    {% if pub.imagem %}
+                        <div class="w-full max-h-96 bg-[#F0FFF3] flex items-center justify-center border-b border-gray-100 overflow-hidden">
                             <img src="{{ pub.imagem.url }}" class="w-full h-full object-cover" alt="Foto do serviço">
-                        {% else %}
-                            <span class="text-[#386490] opacity-50 font-semibold flex flex-col items-center">
-                                <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                Imagem do Serviço
-                            </span>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% endif %}
 
                     <!-- Corpo e Interações -->
                     <div class="p-4">
-                        <div class="flex justify-between items-center mb-3">
-                            <div class="flex gap-4">
-                                <button class="text-[#386490] hover:text-[#9C5B25] transition-colors font-bold text-2xl leading-none">♡</button>
-                                <button class="text-[#386490] hover:text-[#9C5B25] transition-colors font-bold text-xl leading-none">💬</button>
-                            </div>
-                            <span class="text-[#9C5B25] font-bold text-sm">★ Novo</span>
-                        </div>
-                        
                         <!-- Texto da Publicação -->
-                        <p class="text-sm text-gray-700 mb-4 whitespace-pre-line">{{ pub.texto }}</p>
+                        <p class="text-sm text-gray-700 mb-4 whitespace-pre-line leading-relaxed">{{ pub.texto }}</p>
                         
                         <!-- Botão de WhatsApp Dinâmico -->
                         <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
-                            <span class="font-bold text-[#022E4B] text-sm">Orçamento via chat</span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs text-gray-500 font-medium">Atendimento em <strong class="text-[#022E4B]">{{ pub.prestador.cidade }}</strong></span>
+                                <a href="{% url 'vitrine_prestador' pub.prestador.id %}" class="text-xs font-bold text-[#386490] hover:underline">
+                                    Ver perfil
+                                </a>
+                            </div>
                             
-                            <a href="https://wa.me/{{ pub.prestador.telefone }}?text=Olá! Vi seu anúncio no ConectaPro." target="_blank" 
-                               class="bg-[#386490] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-[#022E4B] transition-colors shadow-sm">
-                                Contatar
+                            <a href="https://wa.me/{{ pub.prestador.telefone }}?text=Olá {{ pub.prestador.usuario.first_name }}! Vi seu anúncio de {{ pub.categoria.nome }} no ConectaPro." target="_blank" 
+                               class="bg-[#386490] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-[#022E4B] transition-colors shadow-sm no-underline">
+                                Contatar no WhatsApp
                             </a>
                         </div>
                     </div>
                 </article>
             
             {% empty %}
-                <!-- Caso o banco de dados de publicações esteja vazio -->
+                <!-- Caso não haja publicações ou a busca não encontre resultados -->
                 <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
                     <div class="w-16 h-16 bg-[#F0FFF3] text-[#386490] rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <h3 class="text-[#022E4B] font-bold text-lg mb-2">Mural Vazio</h3>
-                    <p class="text-gray-500 text-sm">Nenhum serviço publicado ainda. Seja o primeiro a anunciar!</p>
+                    <h3 class="text-[#022E4B] font-bold text-lg mb-2">Nenhum serviço encontrado</h3>
+                    <p class="text-gray-500 text-sm">
+                        {% if busca or categoria_selecionada %}
+                            Tente buscar por outro termo ou limpar os filtros ativos.
+                        {% else %}
+                            Nenhum serviço publicado ainda. Seja o primeiro a anunciar!
+                        {% endif %}
+                    </p>
                 </div>
             {% endfor %}
             
         </section>
 
     </main>
+
+    <!-- Script para mostrar o nome da imagem selecionada antes de publicar -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const inputImagem = document.getElementById("inputImagem");
+            const container = document.getElementById("nomeArquivoContainer");
+            const texto = document.getElementById("nomeArquivoTexto");
+            const btnRemover = document.getElementById("btnRemoverImagem");
+
+            if (inputImagem) {
+                inputImagem.addEventListener("change", function() {
+                    if (this.files && this.files[0]) {
+                        texto.textContent = "Imagem selecionada: " + this.files[0].name;
+                        container.classList.remove("hidden");
+                    }
+                });
+
+                btnRemover.addEventListener("click", function() {
+                    inputImagem.value = "";
+                    container.classList.add("hidden");
+                });
+            }
+        });
+    </script>
 </body>
 </html>

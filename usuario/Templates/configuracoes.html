@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - ConectaPro</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F9F5D7] min-h-screen pb-12">
+
+    {% include 'navbar.html' %}
+
+    <main class="max-w-2xl mx-auto px-4 mt-8 space-y-6">
+
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-[#022E4B]">Configurações da Conta</h1>
+                <p class="text-xs text-gray-600 mt-0.5">Gerencie seus dados de acesso, senha e segurança.</p>
+            </div>
+            <a href="{% url 'feed' %}" class="text-sm font-semibold text-[#386490] hover:text-[#022E4B]">
+                ← Voltar ao Feed
+            </a>
+        </div>
+
+        <!-- Alertas de feedback -->
+        {% if status == 'dados_salvos' %}
+            <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-r-lg text-sm font-semibold shadow-sm">
+                Dados da conta atualizados com sucesso!
+            </div>
+        {% elif status == 'senha_alterada' %}
+            <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-r-lg text-sm font-semibold shadow-sm">
+                Sua senha foi alterada com sucesso!
+            </div>
+        {% elif status == 'erro_dados' %}
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg text-sm font-semibold shadow-sm">
+                Preencha seu nome e e-mail corretamente.
+            </div>
+        {% elif status == 'email_em_uso' %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-r-lg text-sm font-semibold shadow-sm">
+                Este e-mail já está sendo utilizado por outra conta.
+            </div>
+        {% elif status == 'senha_incorreta' %}
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg text-sm font-semibold shadow-sm">
+                A senha atual informada está incorreta.
+            </div>
+        {% elif status == 'senhas_diferentes' %}
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg text-sm font-semibold shadow-sm">
+                A nova senha e a confirmação não coincidem ou estão em branco.
+            </div>
+        {% elif status == 'senha_exclusao_incorreta' %}
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg text-sm font-semibold shadow-sm">
+                Senha incorreta. A conta não foi excluída.
+            </div>
+        {% endif %}
+
+        <!-- Bloco 1: Dados Pessoais -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-base font-bold text-[#022E4B] mb-1">Dados de Acesso</h2>
+            <p class="text-xs text-gray-500 mb-4">Informações principais da sua conta no ConectaPro.</p>
+
+            <form action="{% url 'configuracoes' %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="dados">
+
+                <div>
+                    <label for="nome" class="block text-sm font-semibold text-[#022E4B] mb-1">Nome Completo</label>
+                    <input type="text" id="nome" name="nome" value="{{ request.user.first_name }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#386490] bg-[#F0FFF3] text-gray-700 text-sm">
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-semibold text-[#022E4B] mb-1">E-mail de Login</label>
+                    <input type="email" id="email" name="email" value="{{ request.user.email }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#386490] bg-[#F0FFF3] text-gray-700 text-sm">
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="bg-[#386490] text-white font-bold px-5 py-2.5 rounded-lg hover:bg-[#022E4B] transition-colors text-sm shadow-sm">
+                        Salvar Dados
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Bloco 2: Segurança / Troca de Senha -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-base font-bold text-[#022E4B] mb-1">Alterar Senha</h2>
+            <p class="text-xs text-gray-500 mb-4">Escolha uma nova senha para manter sua conta protegida.</p>
+
+            <form action="{% url 'configuracoes' %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="senha">
+
+                <div>
+                    <label for="senha_atual" class="block text-sm font-semibold text-[#022E4B] mb-1">Senha Atual</label>
+                    <input type="password" id="senha_atual" name="senha_atual" placeholder="••••••••"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#386490] bg-[#F0FFF3] text-gray-700 text-sm">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="nova_senha" class="block text-sm font-semibold text-[#022E4B] mb-1">Nova Senha</label>
+                        <input type="password" id="nova_senha" name="nova_senha" placeholder="••••••••"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#386490] bg-[#F0FFF3] text-gray-700 text-sm">
+                    </div>
+                    <div>
+                        <label for="confirmar_senha" class="block text-sm font-semibold text-[#022E4B] mb-1">Confirmar Nova Senha</label>
+                        <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="••••••••"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#386490] bg-[#F0FFF3] text-gray-700 text-sm">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="bg-[#386490] text-white font-bold px-5 py-2.5 rounded-lg hover:bg-[#022E4B] transition-colors text-sm shadow-sm">
+                        Atualizar Senha
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Bloco 3: Zona de Perigo -->
+        <section class="bg-white rounded-2xl shadow-sm border border-red-200 p-6">
+            <h2 class="text-base font-bold text-red-700 mb-1">Excluir Conta</h2>
+            <p class="text-xs text-gray-600 mb-4">
+                Esta ação é permanente. Todos os seus dados, perfil profissional, publicações e avaliações feitas serão removidos do sistema.
+            </p>
+
+            <form action="{% url 'configuracoes' %}" method="POST" onsubmit="return confirm('Tem certeza absoluta que deseja excluir sua conta permanentemente?');" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="excluir">
+
+                <input type="password" name="senha_confirmacao" placeholder="Digite sua senha para confirmar"
+                       class="flex-1 px-4 py-2 border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-red-50/40 text-gray-700 text-sm">
+
+                <button type="submit" class="bg-red-600 text-white font-bold px-5 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm shadow-sm shrink-0">
+                    Excluir Minha Conta
+                </button>
+            </form>
+        </section>
+
+    </main>
+
+</body>
+</html>
